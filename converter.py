@@ -4,8 +4,18 @@
 # Copyright (c) 2014 Tomasz Kapuściński
 
 import sys
+import os.path
+from os.path import join, getsize
+import os
 import geometry
 import modelformat
+import re
+from shutil import copyfile
+from PIL import Image
+
+image_code=r'map_Kd '
+pattern = re.compile(image_code)
+
 
 # put libraries with model format implementations here
 import objformat
@@ -15,14 +25,17 @@ import colobotformat
 # parse arguments
 i = 1
 n = len(sys.argv)
-
+image_mode = False
+dir_mode = False
 batch_mode = False
 file_list = []
 
+in_dir = None
 in_filename = None
 in_format = 'default'
 in_params = {}
 
+out_dir= None
 out_filename = None
 out_format = 'default'
 out_params = {}
@@ -90,13 +103,107 @@ while i < n:
     elif arg == '-ext':
         modelformat.print_extensions()
         exit()
+    elif arg == '-di':
+        in_dir=sys.argv[i+1]
+        i = i + 2
+    elif arg == '-do':
+        out_dir=sys.argv[i+1]
+        i = i + 2
+    elif arg == '-all':
+        dir_mode=True
+        i = i + 1
+    elif arg == '-image':
+        image_mode=True
+        i = i + 1
     else:
         print('Unknown switch: {}'.format(arg))
         exit()
 
-# convert file
+# convert all files in a directory
+'''
+find all the txt files
+convert to obj in blend dir
+convert to mod in mod dir
+search mtl file for images
+if image found and it doesn't already exist, copy it to the obj dir
+if not found complain that there are missing textures
+manually import obj files to blender in a batch
+'''
+def convertEach():
+    #command to create a reference image for model
+    #blender HumanTorso1v.blend -b -o orso -F PNG  -f 1
+    print "convert here"
 
+# convert file
 if batch_mode:
     modelformat.convert_list(file_list, in_format, in_params, out_format, out_params)
+elif dir_mode:
+    if out_format == "obj":
+        print "This is TXT to OBJ -- input dir = ",in_dir," out dir is ",out_dir,\
+            " out format is ",out_format," in format is ",in_format," get images is ",image_mode
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
+        for root,dirs,files in os.walk(join(".",in_dir),topdown=False):
+            for name in files:
+                print name
+                base_name=name.split('.')[0]
+                modelformat.convert(in_format, join(".",in_dir,name), in_params, out_format, \
+                join(".",out_dir,base_name+".obj"), out_params)
+                for i,line in enumerate(open(join(".",out_dir,base_name+".mtl"))):
+                    for match in re.finditer(pattern,line):
+                        image_name=line.split(image_code)[1]
+                        image_name=image_name.strip()
+                        print "adding ",image_name," to obj file dir"
+                        if not os.path.exists("./"+out_dir+"/"+image_name):
+                            for root2,dirs2,files2 in os.walk(join("..","."),topdown=False):
+                                for name2 in files2:
+                                    if name2==image_name:
+                                        print "Moving this ",join(root2, name2)
+                                        copyfile(join(root2,name2),join(".",out_dir,image_name))
+                                        img = Image.open(join(".",out_dir,image_name)).transpose(Image.FLIP_TOP_BOTTOM)
+                                        img.save(join(".",out_dir,image_name))
+                                        exit()
+    if out_format == "new_txt":
+        print "This is OBJ to TXT -- input dir = ",in_dir," out dir is ",out_dir,\
+            " out format is ",out_format," in format is ",in_format," get images is ",image_mode
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
+        for root,dirs,files in os.walk(join(".",in_dir),topdown=False):
+            for name in files:
+                print name
+                if ".obj" in name:
+                    base_name=name.split('.')[0]
+                    print join(".",in_dir,name)
+                    os.chdir(in_dir) #Needs to be in that dir so model format can find the .mtl file
+                    modelformat.convert(in_format, name, in_params, out_format, \
+                    join("..",".",out_dir,base_name+".txt"), out_params)
+                    os.chdir("..")
+                    exit()
+    if out_format == "old":
+        print "This is TXT to MOD -- input dir = ",in_dir," out dir is ",out_dir,\
+            " out format is ",out_format," in format is ",in_format," get images is ",image_mode
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
+        print join(".",in_dir)
+        for root,dirs,files in os.walk(join(".",in_dir),topdown=False):
+            for name in files:
+                print name
+                if ".txt" in name:
+                    base_name=name.split('.')[0]
+                    modelformat.convert(in_format, join(".",in_dir,name), in_params, out_format, \
+                    join(".",out_dir,base_name+".mod"), out_params)
+                    exit()
+    exit()
 else:
-    modelformat.convert(in_format, in_filename, in_params, out_format, out_filename, out_params)
+    if (in_filename != None) and (out_filename != None):
+        if os.path.isfile(in_filename):
+            modelformat.convert(in_format, in_filename, in_params, out_format, out_filename, out_params)
+        else:
+            print'No such input file ->',in_filename
+    else:
+        if (in_filename == None):
+            print 'Missing input source file name ->',in_filename
+            print 'Example: \"python converter.py fileToConvert.ext newFormatFile.ext\"'
+        if (out_filename == None):
+            print 'Missing destination file name ->',in_filename
+            print 'Example: \"python converter.py fileToConvert.ext newFormatFile.ext\"'
