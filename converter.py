@@ -150,9 +150,9 @@ find all the txt files in the input directory and convert to mod in the output d
 I suppose that B and C could be combined in one step to make it easier,but maybe later when I include the blender headless python code to input the models and action scripting to do armatures and RK ( reverse kinematics ) on the models and export it back as scripts or C++ code modules.
 
 EXAMPLES:
-python converterAll.py -blenderTool -di models-new -do blender_obj -image -of obj
-python converterAll.py -blenderTool -di blender_obj -do newtxt -image -of new_txt
-python converterAll.py -blenderTool -di newtxt -do newmod -image -of old
+python converter.py -blenderTool -di models-new -do blender_obj -image -of obj
+python converter.py -blenderTool -di blender_obj -do newtxt -image -of new_txt
+python converter.py -blenderTool -di newtxt -do newmod -image -of old
 
 '''
 def convertEach():
