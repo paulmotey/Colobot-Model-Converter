@@ -109,7 +109,7 @@ while i < n:
     elif arg == '-do':
         out_dir=sys.argv[i+1]
         i = i + 2
-    elif arg == '-all':
+    elif arg == '-blenderTool':
         dir_mode=True
         i = i + 1
     elif arg == '-image':
@@ -121,13 +121,39 @@ while i < n:
 
 # convert all files in a directory
 '''
-find all the txt files
-convert to obj in blend dir
-convert to mod in mod dir
-search mtl file for images
-if image found and it doesn't already exist, copy it to the obj dir
-if not found complain that there are missing textures
-manually import obj files to blender in a batch
+Warning! YMMV
+Expects that the directory where it is run contains the source directory for whatever is to be converted
+Expects that image files matching those in the mtl file are somewhere on the directory tree " above and sideways "
+
+
+All commands need this
+-od is output directory
+-id is input directory
+
+
+A:
+Blend OBJ conversion:: command options are  -blenderTool -of obj
+1. convert to obj in blend dir
+2. search mtl file for images
+3. if image found and it doesn't already exist there, copy it to the obj dir
+4. if not found complain that there are missing textures
+5. manually import obj files to blender in a batch
+
+B:
+OBJ to new format txt:: command options are  -blenderTool -of new_txt
+find all the obj files in the input directory and convert to txt in the output directory
+
+C:
+TXT to MOD format :: command options are  -blenderTool -of old
+find all the txt files in the input directory and convert to mod in the output directory
+
+I suppose that B and C could be combined in one step to make it easier,but maybe later when I include the blender headless python code to input the models and action scripting to do armatures and RK ( reverse kinematics ) on the models and export it back as scripts or C++ code modules.
+
+EXAMPLES:
+python converterAll.py -blenderTool -di models-new -do blender_obj -image -of obj
+python converterAll.py -blenderTool -di blender_obj -do newtxt -image -of new_txt
+python converterAll.py -blenderTool -di newtxt -do newmod -image -of old
+
 '''
 def convertEach():
     #command to create a reference image for model
@@ -203,7 +229,7 @@ else:
     else:
         if (in_filename == None):
             print 'Missing input source file name ->',in_filename
-            print 'Example: \"python converter.py fileToConvert.ext newFormatFile.ext\"'
+            print 'Example: \"python converter.py -i fileToConvert.ext -o newFormatFile.ext\"'
         if (out_filename == None):
             print 'Missing destination file name ->',in_filename
-            print 'Example: \"python converter.py fileToConvert.ext newFormatFile.ext\"'
+            print 'Example: \"python converter.py -i fileToConvert.ext -o newFormatFile.ext\"'
