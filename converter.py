@@ -127,8 +127,8 @@ Expects that image files matching those in the mtl file are somewhere on the dir
 
 
 All commands need this
--od is output directory
--id is input directory
+-do is output directory
+-di is input directory
 
 
 A:
