@@ -10,6 +10,7 @@ import os
 import geometry
 import modelformat
 import re
+import shutil
 from shutil import copyfile
 from PIL import Image
 
@@ -173,8 +174,12 @@ elif dir_mode:
             for name in files:
                 print name
                 base_name=name.split('.')[0]
-                modelformat.convert(in_format, join(".",in_dir,name), in_params, out_format, \
-                join(".",out_dir,base_name+".obj"), out_params)
+                os.chdir(in_dir) #Needs to be in that dir so mtl file relative is .\
+                modelformat.convert(in_format, join("..",in_dir,name), in_params, out_format, \
+                join(base_name+".obj"), out_params)
+                os.chdir("..")
+                shutil.move(join(in_dir,base_name+".obj"),join(out_dir,base_name+".obj"))
+                shutil.move(join(in_dir,base_name+".mtl"),join(out_dir,base_name+".mtl"))
                 for i,line in enumerate(open(join(".",out_dir,base_name+".mtl"))):
                     for match in re.finditer(pattern,line):
                         image_name=line.split(image_code)[1]
@@ -200,7 +205,7 @@ elif dir_mode:
                     base_name=name.split('.')[0]
                     print join(".",in_dir,name)
                     os.chdir(in_dir) #Needs to be in that dir so model format can find the .mtl file
-                    modelformat.convert(in_format, name, in_params, out_format, \
+                    modelformat.convert(in_format, join(name), in_params, out_format, \
                     join("..",".",out_dir,base_name+".txt"), out_params)
                     os.chdir("..")
     if out_format == "old":
