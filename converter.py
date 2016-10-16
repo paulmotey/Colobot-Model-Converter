@@ -188,7 +188,6 @@ elif dir_mode:
                                         copyfile(join(root2,name2),join(".",out_dir,image_name))
                                         img = Image.open(join(".",out_dir,image_name)).transpose(Image.FLIP_TOP_BOTTOM)
                                         img.save(join(".",out_dir,image_name))
-                                        exit()
     if out_format == "new_txt":
         print "This is OBJ to TXT -- input dir = ",in_dir," out dir is ",out_dir,\
             " out format is ",out_format," in format is ",in_format," get images is ",image_mode
@@ -204,7 +203,6 @@ elif dir_mode:
                     modelformat.convert(in_format, name, in_params, out_format, \
                     join("..",".",out_dir,base_name+".txt"), out_params)
                     os.chdir("..")
-                    exit()
     if out_format == "old":
         print "This is TXT to MOD -- input dir = ",in_dir," out dir is ",out_dir,\
             " out format is ",out_format," in format is ",in_format," get images is ",image_mode
@@ -218,7 +216,6 @@ elif dir_mode:
                     base_name=name.split('.')[0]
                     modelformat.convert(in_format, join(".",in_dir,name), in_params, out_format, \
                     join(".",out_dir,base_name+".mod"), out_params)
-                    exit()
     exit()
 else:
     if (in_filename != None) and (out_filename != None):
